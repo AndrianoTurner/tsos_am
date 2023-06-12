@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 from scipy import signal
+from scipy.fft import fft,fftfreq
 data = []
 W1 = 410
 t = np.arange(0, 1,0.0005)
@@ -27,10 +28,17 @@ plt.ylabel('Амплитуда [В]')
 plt.plot(t,data)
 plt.figure()
 
-order,wn = signal.buttord([700,1000], [600,1100], 3, 40,False,fs)
-sos = signal.butter(order, wn , 'bp',fs=fs, output='sos')
+order,wn = signal.buttord([1000,1500], [900,1600], 3, 40,False,fs/2)
+sos = signal.butter(order, wn , 'bs',fs=fs, output='sos')
 filtered = signal.sosfilt(sos, data)
 plt.plot(t,filtered)
+
+plt.figure()
+
+xpos = fft(data)[1:len(data)//2]
+fpos = np.linspace(0,fs/2,len(xpos))
+plt.xlim(0,2500)
+plt.plot(fpos,np.abs(xpos)[:999])
 plt.show()
 
 
