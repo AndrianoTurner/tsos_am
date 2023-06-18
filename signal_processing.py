@@ -29,6 +29,7 @@ high = cutoff[1] / nyq
 b,a = signal.butter(2,[low,high],btype="bs")
 
 
+
 plt.xlabel('Время [с]')
 plt.ylabel('Амплитуда [В]')
 plt.plot(t,data)
