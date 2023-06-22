@@ -3,7 +3,50 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 from scipy import signal
+from scipy.signal import butter, sosfilt, sosfreqz
 from scipy.fft import fft,fftfreq
+
+
+def butter_bandstop(lowcut, highcut, fs, order=5):
+        nyq = 0.5 * fs
+        low = lowcut / nyq
+        high = highcut / nyq
+        sos = butter(order, [low, high], analog=False, btype='bs', output='sos')
+        return sos
+
+def butter_bandstop_filter(data, lowcut, highcut, fs, order=5):
+        sos = butter_bandstop(lowcut, highcut, fs, order=order)
+        y = sosfilt(sos, data)
+        return y
+
+def butter_bandpass(lowcut, highcut, fs, order=5):
+        nyq = 0.5 * fs
+        low = lowcut / nyq
+        high = highcut / nyq
+        sos = butter(order, [low, high], analog=False, btype='bp', output='sos')
+        return sos
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+        sos = butter_bandpass(lowcut, highcut, fs, order=order)
+        y = sosfilt(sos, data)
+        return y
+
+def butter_bandpass(lowcut, highcut, fs, order=5):
+        nyq = 0.5 * fs
+        low = lowcut / nyq
+        high = highcut / nyq
+        sos = butter(order, [low, high], analog=False, btype='bp', output='sos')
+        return sos
+
+def butter_lowfilt(Wn, fs, order=5):
+        sos = butter(order, Wn, analog=False, btype='lowpass', output='sos',fs=fs)
+        return sos
+
+def butter_lowfilt_filter(data, Wn, fs, order=5):
+        sos = butter_lowfilt(Wn, fs, order=order)
+        y = sosfilt(sos, data)
+        return y
+    
 data = []
 W1 = 410
 t = np.arange(0, 1,0.0005)
@@ -22,44 +65,25 @@ with open("13.csv") as file:
 
 print(max(data))
 data = np.array(data)
-nyq = fs / 2
-cutoff = [1000,1500]
-low = cutoff[0] / nyq
-high = cutoff[1] / nyq
-b,a = signal.butter(2,[low,high],btype="bs")
 
-
-
+fig,axes = plt.subplots(2,sharex=False,sharey=False)
 plt.xlabel('Время [с]')
 plt.ylabel('Амплитуда [В]')
-plt.plot(t,data)
-plt.figure()
+axes[0].plot(t,data)
 
-#order,wn = signal.buttord([1000,1500], [900,1600], 3, 40,False,fs/2)
-#sos = signal.butter(order, wn , 'bs',fs=fs, output='sos')
-#filtered = signal.sosfilt(sos, data)
-filtered = signal.lfilter(b,a,data)
 
-smooth_cutoff = 188
-nyq_cutoff = smooth_cutoff / nyq
-num_taps = 25
-lpf = signal.firwin(num_taps,nyq_cutoff)
+filtered = butter_bandstop_filter(data,1000,2000,fs,10)
+filtered = butter_lowfilt_filter(data,900,fs,10)
+axes[1].plot(filtered)
 
-filtered = signal.lfilter(lpf,1,filtered)
-plt.plot(t,filtered)
-
-plt.figure()
-
+fig2,axes2 = plt.subplots(2,sharex=False,sharey=False)
 xpos = fft(data)[1:len(data)//2]
 fpos = np.linspace(0,fs/2,len(xpos))
 plt.xlim(0,2500)
-plt.plot(fpos,np.abs(xpos)[:999])
-
-plt.figure()
+axes2[0].plot(fpos,np.abs(xpos)[:999])
 xpos = fft(filtered)[1:len(filtered)//2]
 fpos = np.linspace(0,fs/2,len(xpos))
-plt.xlim(0,2500)
-plt.plot(fpos,np.abs(xpos)[:999])
+axes2[1].plot(fpos,np.abs(xpos)[:999])
 plt.show()
 
 
