@@ -6,6 +6,8 @@ from math import floor, ceil
 import os
 import multiprocessing
 import itertools
+from scipy import fft
+import scipy
 # Чтение данных из файла CSV
 df = pd.read_csv('13.csv', header=None)
 amplitude = df[0].values.astype(float)
@@ -238,8 +240,19 @@ def pool_run():
     input = itertools.product(range(1000,2000,150),range(5,10),range(1,7))
     pool.map(bruteforce,input)
 
+
+
 if __name__ == "__main__":
     create_filter(35000,400,2000,5,2,1)
-    #pool_run()
-    
+    df = pd.read_csv('13.csv', header=None)
+    amplitude = df[0].values.astype(float)
+    print(amplitude)
+    time = np.linspace(0, 1, len(amplitude))  # Временные метки
+
+    xpos = fft.fft(amplitude)[1:len(amplitude)//2]
+    fpos = np.linspace(0,fs/2,len(xpos))
+    plt.xlim(0,2500)
+    plt.xlabel("Частота (Гц)")
+    plt.plot(fpos,np.abs(xpos)[:999])
+    plt.show()
     
